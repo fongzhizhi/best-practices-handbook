@@ -113,7 +113,7 @@
    - 对关键模块运行 Spec Miner，输出当前模块的职责、输入输出、依赖关系。
    - 人工审视输出，识别职责过重或边界模糊的模块。
 
-2. **规划重构（GitHub Spec Kit）**  
+2. **规划重构（GitHub Spec Kit或Open Spec）**  
    - 以逆向 Spec 为基准，使用 `/speckit.plan` 设计新的模块划分。
    - 生成 `tasks.md`，按任务列表逐步拆分模块。
 
