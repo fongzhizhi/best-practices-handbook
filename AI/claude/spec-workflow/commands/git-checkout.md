@@ -100,6 +100,7 @@
 ```
 
 ## 使用示例
+
 - `/git-checkout develop` — 切换到 develop 分支
 - `/git-checkout main` — 切换到 main 分支
 - `/git-checkout` — 交互式询问分支名

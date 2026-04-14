@@ -1,15 +1,22 @@
-请根据当前分支的变更内容，生成一条符合 Conventional Commits 规范的 commit message，并自动附加对话上下文中的 ONES 单信息和 Spec 文档信息，然后执行提交。
+请根据当前分支的变更内容，生成一条符合 Conventional Commits 规范的 commit message，并自动附加对话上下文中的 ONES 单信息和 Spec 文档信息，然后执行提交。本指令会智能处理代码格式化，确保提交前代码风格统一。
 
 ## 执行步骤
 
-### 1. 获取代码变更内容
+### 1. 代码格式化（自动保障）
+- 检查当前工作区或暂存区是否存在未格式化的变更文件（依据项目 Prettier 配置）。
+- 若存在需格式化的文件，自动调用 `/prettier-format` 完成格式化。
+- 若格式化产生了新的变更，将其自动添加到暂存区，确保后续提交包含格式化后的代码。
+- 若项目未配置格式化工具，跳过此步骤并提示用户建议配置。
+
+### 2. 获取代码变更内容
 - 执行 `git diff --cached` 获取暂存区变更；若暂存区为空，则执行 `git diff` 获取工作区变更。
+- 若此时仍无任何变更（工作区和暂存区均为空），提示用户：“没有需要提交的变更”，流程终止。
 - 分析变更内容，识别：
   - 改动类型：feat / fix / refactor / docs / style / test / chore / perf / ci
   - 影响范围（scope），如 auth、editor、payment
   - 关键变更点摘要（用于 commit body）
 
-### 2. 从对话上下文中提取 ONES 信息
+### 3. 从对话上下文中提取 ONES 信息
 扫描当前对话历史，识别 ONES 单的特征：
 - **链接格式**：包含 `ones.` 的 URL（如 `http://ones.lceda/xxx`）
 - **ID 格式**：`[A-Z]+-\d+`，如 `PRO-151081`
@@ -17,15 +24,14 @@
 
 若存在多个 ONES 单，选择最近一次提及或与变更最相关的。若未发现则留空。
 
-### 3. 从对话上下文中提取 Spec 信息
+### 4. 从对话上下文中提取 Spec 信息
 扫描对话历史，识别 Spec 文档引用：
 - 路径格式：`openspec/specs/` 下的 `.md` 文件，或 `openspec/changes/` 下的目录名
 - 优先提取最近生成或更新的 Spec 路径。若未发现则留空。
 
-### 4. 生成 commit message
+### 5. 生成 commit message
 采用以下格式：
-
-```txt
+```
 <type>(<scope>): <简短描述>
 
 <详细变更点列表，每行以 - 开头>
@@ -36,8 +42,7 @@ Link: <ONES单URL>
 ```
 
 示例：
-
-```txt
+```
 fix(editor): 修复PCB打开时的权限校验错误
 
 - 将权限检查前置到文件读取之前
@@ -51,7 +56,7 @@ Link: http://ones.lceda/xxxx
 
 若无 ONES/Spec，则省略相应行。
 
-### 5. 用户确认并提交
+### 6. 用户确认并提交
 - 向用户展示完整的 commit message 预览。
 - 询问用户：“是否使用此消息提交？(y/n)”
 - 若用户回复 `y`，则执行 `git add .`（若暂存区为空）并将该消息写入 commit：`git commit -m "生成的消息"`。
@@ -61,3 +66,4 @@ Link: http://ones.lceda/xxxx
 - 若同时存在多个 ONES 单，应向用户确认关联哪一个，或提示用户手动指定。
 - 若无法从上下文自动提取，用户可在命令中手动传入，如：
   `/git-commit --ones PRO-151081 --spec openspec/specs/editor/spec.md`
+- 格式化步骤依赖 `/prettier-format` 指令，请确保该指令文件存在。若不存在，本指令将跳过格式化并提示用户手动格式化。

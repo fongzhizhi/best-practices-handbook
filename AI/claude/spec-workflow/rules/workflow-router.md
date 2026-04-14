@@ -20,19 +20,23 @@
 
 1. **分支准备**  
    - 询问基准分支（如 `main`、`develop`），未指定时推荐使用 `/git-checkout <基准分支>`。  
-   - 引导创建功能分支：`/git-branch`。
+   - 引导创建功能分支：`/git-branch`。  
+   - **后续提示**：当用户完成 `/git-checkout` 后，主动询问：“已切换到基准分支，是否需要我帮你创建新的功能分支？你可以执行 `/git-branch`，我会自动生成符合规范的分支名。”
 
 2. **规范驱动开发**  
    - 提议：“建议先用 `/openspec:proposal` 创建变更提案，明确需求与验收标准。需要我帮你创建吗？”  
    - 同意则执行 `/openspec:proposal`，填写 Why / What Changes / Impact。  
-   - 提案确认后询问是否立即实施（`/openspec:apply`）。若拒绝则直接编码。
+   - 提案确认后询问是否立即实施（`/openspec:apply`）。若拒绝则直接编码。  
+   - **后续提示**：提案生成后，主动询问：“提案已创建，是否需要我立即开始实施？你也可以手动修改提案后再执行 `/openspec:apply`。”
 
 3. **代码实现**  
-   - 遵循 `constitution.md` 规范。提示可随时使用 `/prettier-format`。
+   - 遵循 `constitution.md` 规范。提示可随时使用 `/prettier-format`。  
+   - **后续提示**：当用户提到代码已写完，主动引导：“代码实现完成，是否需要我帮你运行 `/pre-commit` 进行质量检查？然后可以执行 `/git-commit` 提交。”
 
 4. **提交与合并**  
    - 引导质量检查与提交流程：  
-     `/pre-commit` → `/git-commit` → `/git-push` → `/git-merge`。
+     `/pre-commit` → `/git-commit` → `/git-push` → `/git-merge`。  
+   - **后续提示**：每步完成后给出下一步建议，例如执行完 `/git-commit` 后询问：“提交成功，是否现在推送到远程？执行 `/git-push` 即可。”
 
 5. **归档**  
    - 合并后提醒：“请使用 `/openspec:archive <变更名>` 归档。”
@@ -47,17 +51,20 @@
 
 1. **定位问题**  
    - 询问发生 Bug 的模块/文件。若用户不清楚，建议：“可用 Spec Miner 分析可疑模块，需要我执行吗？”  
-   - 同意则调用 `spec-miner-openspec` 生成规范文档。
+   - 同意则调用 `spec-miner-openspec` 生成规范文档。  
+   - **后续提示**：分析完成后主动询问：“问题已定位，是否需要创建 Bug 修复提案？我可以帮你执行 `/openspec:proposal`。”
 
 2. **创建修复提案**  
    - 提议：“建议创建 Bug 修复提案记录根因与方案。需要我帮你创建吗？”  
-   - 同意则执行 `/openspec:proposal`（侧重 Bug 描述与修复点）。
+   - 同意则执行 `/openspec:proposal`（侧重 Bug 描述与修复点）。  
+   - **后续提示**：提案创建后询问：“提案已就绪，是否开始实施修复？”
 
 3. **实施修复**  
    - 提示同步更新对应 Spec 文档（若存在）。
 
 4. **提交与合并**  
-   - 引导：`/pre-commit` → `/git-commit`（自动关联 ONES）→ `/git-push` → `/git-merge`。
+   - 引导：`/pre-commit` → `/git-commit`（自动关联 ONES）→ `/git-push` → `/git-merge`。  
+   - **后续提示**：同场景 1 的提交与合并后续提示。
 
 5. **归档**  
    - 提醒执行 `/openspec:archive`。
@@ -72,7 +79,8 @@
 
 1. **理解现状**  
    - 建议：“重构前应提取模块当前规范作为安全基线。是否使用 Spec Miner 分析？”  
-   - 同意则调用 `spec-miner-openspec` 输出至 `openspec/specs/`。
+   - 同意则调用 `spec-miner-openspec` 输出至 `openspec/specs/`。  
+   - **后续提示**：分析完成后主动询问：“规范已提取，是否基于此创建重构提案？执行 `/openspec:proposal` 可以规划重构步骤。”
 
 2. **创建重构提案**  
    - 基于逆向规范执行 `/openspec:proposal`，强调 Why（原因）与验证方案。
@@ -94,7 +102,8 @@
 1. 回复：“我将用 Spec Miner 生成行为摘要。”  
 2. 询问分析路径。  
 3. 调用 `spec-miner-openspec` 或 Spec Miner QA 模式，输出：职责总结、关键接口、数据流、副作用。  
-4. 询问是否进一步分析或创建提案。
+4. 询问是否进一步分析或创建提案。  
+   **后续提示**：分析结果展示后主动询问：“理解清楚后，你是想修改此模块（修复/重构）还是继续探索其他部分？”
 
 ---
 
@@ -105,7 +114,8 @@
 **引导步骤**：
 
 - **若意图为提交代码**：引导执行标准流水线：  
-  `/pre-commit` → `/git-commit` → `/git-push` → `/git-merge`。
+  `/pre-commit` → `/git-commit` → `/git-push` → `/git-merge`。  
+  **后续提示**：每步自动给出下一步选项，例如执行完 `/git-commit` 后询问：“是否推送到远程？执行 `/git-push` 即可，或者你想稍后再 push？”
 
 - **若意图为代码审查**：  
   对照 `constitution.md` 及关联 OpenSpec 提案进行审查，输出分级意见（必须修改/建议修改/可选优化），询问是否直接修改。
@@ -119,7 +129,8 @@
 **引导步骤**：
 
 1. 回复：“我将为代码添加 JSDoc 注释。是否同步创建 OpenSpec 规格文档？”  
-2. 执行注释添加；若同意则创建提案或直接归档 Spec。
+2. 执行注释添加；若同意则创建提案或直接归档 Spec。  
+   **后续提示**：注释添加完毕后询问：“是否需要我帮你提交这些注释变更？可以执行 `/git-commit`。”
 
 ---
 
@@ -134,15 +145,30 @@
 - 记录当前场景与步骤（如 `scene: bug, step: proposal_created`），避免重复询问。
 - 当用户回复“继续”、“下一步”、“是的”时，自动推进到下一阶段。
 
-## 主动使用工具
+## 主动使用工具与智能后续提示
 
-引导过程中直接调用对应斜杠命令或技能，而非仅输出文本：
+引导过程中直接调用对应斜杠命令或技能，而非仅输出文本。此外，**在执行完任何一个指令后，AI 必须基于当前工作流状态主动给出合理的下一步建议**，让用户明确知道接下来应该做什么。
+
+### 可用工具清单
 
 - 分支操作：`/git-checkout`、`/git-branch`、`/git-stash`
 - 代码质量：`/prettier-format`、`/pre-commit`
 - 提交推送：`/git-commit`、`/git-push`、`/git-merge`
 - 规范管理：`/openspec:proposal`、`/openspec:apply`、`/openspec:archive`
 - 逆向分析：`spec-miner-openspec` 技能
+
+### 常见后续提示模板
+
+| 当前步骤 | 完成后建议的提示语 |
+| :--- | :--- |
+| `/git-checkout` 切换分支后 | “已切换到目标分支。是否需要基于此分支创建新的开发分支？你可以执行 `/git-branch`，我会帮你生成符合规范的分支名。” |
+| `/git-branch` 创建分支后 | “分支已创建。现在可以开始开发了。如果你需要新建 OpenSpec 提案，可以告诉我‘新功能’或直接执行 `/openspec:proposal`。” |
+| `/git-commit` 提交后 | “提交已完成。是否推送到远程仓库？执行 `/git-push` 即可。” |
+| `/git-push` 推送后 | “代码已推送。是否需要创建合并请求？执行 `/git-merge` 可以一键创建 MR。” |
+| `/git-merge` 创建 MR 后 | “MR 已创建。请通知审核人，并在合并后执行 `/openspec:archive` 归档本次变更。” |
+| Spec Miner 分析完成后 | “分析完成。是否需要基于此结果创建 OpenSpec 提案？或者需要我解释某个具体函数？” |
+| `/openspec:proposal` 生成提案后 | “提案已生成。请审查内容，确认无误后可以执行 `/openspec:apply` 开始实施。” |
+| `/openspec:apply` 实施完成后 | “实施完成。请运行测试验证，然后可以执行提交流程：`/pre-commit` → `/git-commit` → `/git-push`。” |
 
 ## 例外处理
 
