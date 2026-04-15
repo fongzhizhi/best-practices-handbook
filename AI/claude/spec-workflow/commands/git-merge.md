@@ -2,24 +2,42 @@
 
 ## 执行步骤
 
-### 1. 环境检查
-- 检查是否已设置环境变量 `GITLAB_TOKEN`。若未设置，输出以下提示并终止流程：
+### 1. 环境检查与 Token 获取
 
-```txt
-  ❌ 未找到 GitLab Personal Access Token。
-  请按以下步骤配置：
-  1. 登录内网 GitLab → Settings → Access Tokens
-  2. 创建 Token，勾选 `api` 和 `write_repository` 权限
-  3. 将 Token 设置到环境变量：export GITLAB_TOKEN="your_token"
-  4. （可选）若 GitLab 域名非公网标准，还需设置 GITLAB_HOST
-```
+#### 1.1 读取 GitLab Token
+- **从 Claude Code 配置中读取 `gitlab.token`**：检查当前项目的 `.claude/settings.json` 或用户全局的 `~/.claude/settings.json`，从中提取 `gitlab.token` 字段的值。
+- 若未找到该配置，输出以下提示并终止流程：
+  ```txt
+  ❌ 未找到 GitLab Personal Access Token 配置。
+  
+  请在 Claude Code 设置文件中添加 Token（任选其一）：
+  
+  用户全局配置（推荐，所有项目通用）：
+  文件位置：C:\Users<用户名>.claude\settings.json
+  添加内容：
+  {
+  "gitlab": {
+  "token": "你的个人访问令牌"
+  }
+  }
+  
+  当前项目配置（仅当前项目生效）：
+  文件位置：<项目根目录>.claude\settings.json
+  添加相同内容。
+  
+  Token 创建指引：登录 GitLab → Settings → Access Tokens，勾选 api 和 write_repository 权限。
+  配置完成后，请重新运行 /git-merge。
+  ```
 
-- 确定 GitLab 服务器地址：
-  - 优先使用环境变量 `GITLAB_HOST`
-  - 若未设置，从 `git remote get-url origin` 中解析（支持 HTTP/SSH 格式）
-  - 解析失败则询问用户输入 GitLab 地址（例如 `https://gitlab.example.com`）
+**流程终止**。
+
+#### 1.2 确定 GitLab 服务器地址
+- 优先从配置中读取 `gitlab.host`（与 `token` 同级）。
+- 若未配置，则从 `git remote get-url origin` 中解析（支持 HTTP/SSH 格式）。
+- 解析失败则询问用户输入（例如 `https://gitlab.example.com`）。
 
 ### 2. 状态检测与前置处理
+
 - 执行 `git status --porcelain` 检查工作区和暂存区状态。
 - 执行 `git branch --show-current` 获取当前分支名 `SOURCE_BRANCH`。
 - 执行 `git rev-parse --abbrev-ref @{upstream} 2>/dev/null` 检查上游跟踪分支。
@@ -67,26 +85,28 @@ C. 取消操作
 ### 5. 确定审核人（Assignee）
 GitLab API 的 `assignee_ids` 字段需要用户数字 ID。按以下步骤处理：
 1. 用户通过 `--reviewer` 或 `-r` 参数指定的分支。
-2. 项目 `.claude/config.json` 中的 `mr.defaultReviewers`。
+2. 检查当前项目的 `.claude/settings.json` 或用户全局的 `~/.claude/settings.json`，从中提取 `mr.defaultReviewers` 字段的值。
 3. 若未获取到任何用户名，则跳过审核人设置。
 4. 若有用户名，对每个用户名调用 API 获取 ID：
    ```bash
    curl -s -H "PRIVATE-TOKEN: $GITLAB_TOKEN" "$GITLAB_HOST/api/v4/users?username=$USERNAME"
-
+   
    从返回 JSON 中提取第一个对象的 `id`。若失败，该用户将被忽略。
 
 ### 6. 生成 MR 标题和描述
 **标题与描述的获取优先级**：
-1. **优先使用最近一次 `/git-commit` 生成的 commit message**。如果当前对话中调用过 `/git-commit`，提取其生成的完整消息（标题行和正文）。
-2. 若无法从 `/git-commit` 获取（例如用户手动提交或未使用该指令），则使用 **最近一次 `git log -1 --format=%B`** 的输出作为消息内容。
-3. 如果两者均无可用内容（例如空仓库），则根据分支名和变更文件智能生成简要标题。
+
+1. 根据历史对话和变更信息，总结merge request提交信息。
+1. 注意使用中文描述
 
 **消息格式**：
-- **标题**：提取 commit message 的第一行（`<type>(<scope>): <简短描述>`）。
+
+- **标题**：`<type>(<scope>): <简短描述>`。
 - **描述**：包含以下部分（若有则填写）：
+
   ```markdown
   ## 变更说明
-  <commit message 的正文部分（第二行起）>
+  <变更信息总结>
   
   ## 关联信息
   - ONES: <ONES单ID> <ONES单标题>

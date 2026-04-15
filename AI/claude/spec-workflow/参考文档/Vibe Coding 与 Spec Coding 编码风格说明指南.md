@@ -1,3 +1,7 @@
+---
+createData: 2026-04-14
+---
+
 # Vibe Coding 与 Spec Coding 编码风格说明指南
 
 ## 一、两种编码风格：从直觉到规范
