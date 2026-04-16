@@ -35,6 +35,7 @@ skills:
 | 分析、梳理、理解、定位 | 代码分析 | 仅 `analyzer` |
 | 写规范、生成提案、创建 spec | 规范撰写 | 仅 `spec-writer` |
 | 提交、推送、合并、创建 MR | 代码交付 | 仅 `implementer`（需已有代码变更） |
+| cherry-pick、拣选、把提交合入       | 提交拣选   | `implementer`（调用 `/git:cherry-pick`） |
 | 格式化、检查、lint | 质量保障 | 直接调用 `/quality:prettier-format` 或 `/quality:pre-commit`（无需 Agent） |
 
 ## 工作流程模板

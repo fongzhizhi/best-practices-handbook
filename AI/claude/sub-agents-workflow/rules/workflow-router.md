@@ -13,6 +13,7 @@
 | 分析、梳理、理解、查看逻辑、定位原因  | 代码分析   | 调用 Analyzer 输出分析报告                                   |
 | 写规范、生成提案、创建 spec、proposal | 规范撰写   | 调用 Spec-Writer 生成 OpenSpec 文件                          |
 | 提交、推送、合并、创建 MR、commit     | 代码交付   | 调用 Implementer 执行 Git 流程                               |
+| cherry-pick、拣选、把提交合入         | 提交拣选   | 调用 Implementer 执行 cherry-pick 流程                       |
 | 格式化、检查、lint、prettier          | 质量保障   | 直接调用 `/quality:prettier-format` 或 `/quality:pre-commit` |
 
 ## 二、完整工作流步骤指引
@@ -41,9 +42,16 @@
 1. 调度 `analyzer` Agent，直接返回结构化分析报告。
 2. 不产生任何代码变更或规范文件。
 
+### 2.5 提交拣选（Cherry-pick）
+1. **参数确认**：Orchestrator 从用户输入中提取 `COMMIT_SHA` 和 `TARGET_BRANCH`，若缺失则询问。
+2. **调度实施**：调度 `implementer` Agent，调用 `/git:cherry-pick` 指令，传入必要参数。
+3. **冲突处理**：若 cherry-pick 发生冲突，`implementer` 暂停并报告 Orchestrator，Orchestrator 提示用户手动解决冲突。
+4. **创建 MR**：`implementer` 调用 `/git:merge` 创建 MR，若 API 失败则输出手动创建链接。
+5. **结果汇总**：Orchestrator 向用户报告操作结果或手动链接。
+
 ## 三、与 Orchestrator 的协作约定
 
-- **Orchestrator 职责**：解析用户意图、补全上下文信息（如 ONES 单号）、按本规则选择工作流、调度子 Agent、向用户汇总结果。
+- **Orchestrator 职责**：解析用户意图、补全上下文信息（如 ONES 单号、commit SHA）、按本规则选择工作流、调度子 Agent、向用户汇总结果。
 - **子 Agent 职责**：接收明确的任务描述和上下文，返回结构化结果或执行状态。
 - **规则更新**：若新增任务类型，需同步更新本文件中的映射表和步骤指引。
 
@@ -52,3 +60,4 @@
 - **意图不明**：Orchestrator 应列举可能的任务类型供用户选择。
 - **前置条件缺失**（如未配置 GitLab Token）：Orchestrator 应提示用户完成配置后再继续。
 - **子 Agent 失败**：Orchestrator 应提取错误信息，向用户说明原因并询问后续动作（重试/跳过/人工介入）。
+- **Cherry-pick 冲突**：提示用户手动解决冲突，并提供当前分支信息以便继续操作。

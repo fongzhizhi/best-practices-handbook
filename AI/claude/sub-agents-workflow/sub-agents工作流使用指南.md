@@ -53,41 +53,56 @@ createDate: 2026-04-15
 升级后的配置目录如下（位于项目根目录 `.claude/` 下）：
 
 ```txt
-.claude/
-├── agents/                        # 专业 Agent 定义
-│   ├── orchestrator.md            # 主控调度
-│   ├── analyzer.md                # 代码分析
-│   ├── spec-writer.md             # 规范撰写
-│   └── implementer.md             # 实施交付
+项目根目录/
+├── .claude/
+│   ├── agents/                        # 自定义子代理
+│   │   ├── orchestrator.md				# 主控调度
+│   │   ├── analyzer.md					# 代码分析
+│   │   ├── spec-writer.md				# 规范撰写
+│   │   └── implementer.md				# 实施交付
+│   │
+│   ├── commands/                      # 自定义的快捷指令
+│   │   ├── opsx/                      # openspec指令包
+│   │   │   ├── apply.md
+│   │   │   ├── archive.md
+│   │   │   ├── explore.md
+│   │   │   ├── propose.md
+│   │   ├── git/                       # git指令
+│   │   │   ├── checkout.md            # 切换分支
+│   │   │   ├── branch.md              # 创建分支
+│   │   │   ├── commit.md              # 执行提交
+│   │   │   ├── push.md                # 推送提交
+│   │   │   ├── pull.md                # 拉取代码
+│   │   │   ├── fetch.md               # 获取远程信息
+│   │   │   ├── rebase.md              # 变基操作
+│   │   │   ├── merge.md               # 合并请求
+│   │   │   ├── cherry-pick.md         # 遴选合并
+│   │   │   ├── stash.md               # 缓存变更
+│   │   │   ├── status.md              # 查看状态
+│   │   │   ├── diff.md                # 查看差异
+│   │   │   └── log.md                 # 查看日志
+│   │   ├── quality/                   # 质量保障指令
+│   │   │   ├── pre-commit.md          # 预提交检测
+│   │   │   └── prettier-format.md     # 变更格式化
+│   │
+│   ├── skills/                        # 自定义的技能包
+│   │   ├── spec-miner/				   # spec-miner技能包
+│   │   │   └── SKILL.md
+│   │   ├── ones-parser/			   # ones解析
+│   │   │   └── SKILL.md
+│   │   ├── gitlab-config/			   # gitlab配置解析
+│   │   │   └── SKILL.md
+│   │   └── constitution/			   # 场景识别, 宪法规范
+│   │       └── SKILL.md
+│   │   └── openspec-xxx/			  # openspec相关技能包
+│   │
+│   ├── rules/                         # 规则文件
+│   │   ├── constitution.md            # 编码规范
+│   │   └── workflow-router.md         # 智能引导规则
+│   │
+│   └── settings.json                  # 权限配置 + hooks + GitLab用户映射
 │
-├── commands/                      # 原子执行指令
-│   ├── opsx/                      # OpenSpec 官方指令（保持原样）
-│   │   ├── apply.md
-│   │   ├── archive.md
-│   │   ├── explore.md
-│   │   └── propose.md
-│   ├── git/                       # Git 原子指令（极简封装）
-│   │   ├── checkout.md
-│   │   ├── branch.md
-│   │   ├── commit.md
-│   │   ├── push.md
-│   │   ├── merge.md
-│   │   └── ...
-│   └── quality/                   # 质量保障指令
-│       ├── pre-commit.md
-│       └── prettier-format.md
-│
-├── skills/                        # 领域知识插件
-│   ├── spec-miner/                # 逆向分析能力
-│   ├── ones-parser/               # ONES 单解析
-│   ├── gitlab-config/             # GitLab 配置读取
-│   └── constitution/              # 编码规范访问
-│
-├── rules/                         # 静态规则
-│   ├── constitution.md            # 编码规范原文
-│   └── workflow-router.md         # 场景识别规则（供 Orchestrator 参考）
-│
-└── settings.json                  # 权限配置 + GitLab Token 等
+└── CLAUDE.md                          # 项目级入口，引用上述规则
 ```
 
 **重要变化**：
@@ -148,7 +163,7 @@ createDate: 2026-04-15
 
 ### 3.3 激活 Orchestrator
 
-在项目根目录的 `CLAUDE.md` 中添加以下引用，使 Orchestrator 成为默认入口：
+在 `CLAUDE.md` 中添加以下引用，使 Orchestrator 成为默认入口：
 
 ```markdown
 ## AI 工作流入口

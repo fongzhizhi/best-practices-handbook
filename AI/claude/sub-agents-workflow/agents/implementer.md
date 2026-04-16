@@ -16,6 +16,7 @@ commands:
   - /git:fetch
   - /git:rebase
   - /git:merge
+  - /git:cherry-pick
   - /git:stash
   - /git:status
   - /git:diff
@@ -69,9 +70,10 @@ skills:
 3. 若错误无法自动修复（如类型错误、测试失败），将错误详情及建议操作返回给 Orchestrator，由用户决定后续动作。
 
 ### 阶段四：提交与推送
-1. 调用 `ones-parser` Skill 获取 ONES 单信息（若关联），用于生成 commit message 的尾部标记。
-2. 生成符合 Conventional Commits 规范的提交信息，格式：`<type>(<scope>): <subject>`。
-   - 示例：`fix(auth): 修复登录超时无错误提示`
+1. 调用 `ones-parser` Skill 获取 ONES 单信息（若关联），用于生成 commit message 的尾部标记，列表展示。
+2. 生成符合 Conventional Commits 规范的提交信息，注意格式：`<type>(<scope>): <subject>`。
+   - subject：如果有  ONES  信息，直接使用  ONES ID + Ones 标题，无则根据变更生成标题。
+   - 示例：`fix(auth): PRO-15114 修复登录超时无错误提示`
 3. 调用 `/git:commit "<提交信息>"` 执行提交。
 4. 调用 `/git:push origin HEAD` 推送当前分支到远程。
 
@@ -85,8 +87,8 @@ skills:
    {
      "source_branch": "<当前分支名>",
      "target_branch": "<目标分支>",
-     "title": "<与 commit message 标题一致或更详细的描述>",
-     "description": "<从 proposal.md 提取的变更摘要，可附加 ONES 链接>",
+     "title": "<与 commit message 标题一致，注意格式>",
+     "description": "<生成变更摘要，并且附加 ONES 信息>",
      "reviewer_ids": [123, 456]
    }
    ```
