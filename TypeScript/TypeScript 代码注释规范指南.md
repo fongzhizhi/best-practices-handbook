@@ -1,783 +1,617 @@
-# TypeScript代码注释规范指南 v1.2
+---
+updatedDate: 2026-07-17
+---
 
-> **CreateDate**: *2026-01-15*
->
-> **UpdateDate**: *2026-01-15*
-
-## 📜 前言
-
-代码注释作为沟通的桥梁，平衡着开发效率与长期维护成本。我们采用统一、一致的标记体系，制定适合TypeScript项目的现代化注释规范。
-
-### 注释哲学流派对比
-
-| 流派 | 核心理念 | 适用场景 | 采用程度 |
-|------|----------|----------|----------|
-| **JSDoc/TSDoc** | 注释即文档 | 公共API、库、SDK | ✅ 强制 |
-| **自文档代码** | 代码即文档 | 简单工具函数、私有方法 | ✅ 优先 |
-| **注释即契约** | 定义行为边界 | 关键算法、安全模块 | ⚠️ 选择性 |
-| **注释即测试** | 示例即说明 | 复杂API、DSL设计 | ✅ 推荐 |
-| **注释即设计** | 记录决策过程 | 业务核心、复杂模块 | ✅ 推荐 |
-| **注释即沟通** | 团队协作媒介 | 所有协作场景 | ✅ 必须 |
-
-**指导原则**：统一标记格式，保持一致性；公共接口文档化，私有逻辑自解释，复杂业务说清楚。
+# TypeScript 代码注释规范指南 v1.3
 
 ---
 
-## 🎯 核心理念
+## 前言
 
-代码为骨，注释为脉。脉络贵精而不贵多，杂乱的脉络暴露混乱的骨架。
+代码注释是沟通的桥梁，平衡着开发效率与长期维护成本。本规范基于 v1.2 在实际落地中发现的问题进行精简与重构：
 
-1. **统一格式**：所有注释遵循一致的"标签: 内容"格式
+### v1.3 主要变更
+
+- **标签分级**：核心 8 个（必须掌握）/ 扩展（按需）/ 废弃（不推荐）
+- **删除"注释即测试"章节**：测试逻辑应写在真实测试代码中，避免双处维护
+- **删除量化覆盖率指标**：改为定性要求，避免"为注释率而注释"
+- **新增层次标记使用对照表**：解决何时用 `#` / 何时用 `====`
+- **新增 JSDoc 标签规范**、AI 生成注释标识、文件头注释、何时删除注释
+- **文档自身去除 emoji 装饰**，践行"反对过度装饰"原则
+- **TODO/FIXME 格式放宽**，降低落地难度
+- **合并 `DESIGN` 与 `REASON`**，消除语义重叠
+- **明确文件头注释的硬性触发条件**，减少审查争论
+- **推荐 TODO 关联 Issue**，避免注释承载项目管理职责
+- **新增 `@ts-expect-error` 使用规范**，补齐编译器指令覆盖
+- **语言约定调整为"与团队沟通语言一致"**，兼容 AI 生成内容
+
+**指导原则**：统一格式，公共接口文档化，私有逻辑自解释，复杂业务说清楚。
+
+---
+
+## 一、核心理念
+
+代码为骨，注释为脉。脉络贯通而不多余。
+
+1. **统一格式**：所有注释遵循一致的"标签：内容"格式
 2. **代码优先**：清晰的结构和命名胜过冗余注释
 3. **注释为补**：只解释代码无法表达的内容
 4. **层次分明**：通过视觉层次快速导航复杂逻辑
-5. **实用导向**：降低维护成本，提高可读性
+5. **易于维护**：降低维护成本，提高可读性
 
 ---
 
-## 📝 统一注释标记体系
+## 二、何时写注释 / 何时不写
 
-### 一、结构标记（必须掌握）
+### 2.1 决策流程
 
-```typescript
-// # 主要逻辑阶段
-// ## 子步骤或子功能
-// ### 详细步骤（慎用，通常意味着需要重构）
+```
+需要写注释吗？
+├─ 是
+│  ├─ 是否为公共 API（对外暴露）？ → 必须写 JSDoc
+│  ├─ 是否为关键业务逻辑？ → 必须说明业务规则与设计决策
+│  ├─ 是否有非明显的实现？ → 添加技术注释（如安全、性能、兼容性）
+│  └─ 以上都不是 → 无需注释
+└─ 否 → 无需注释
 ```
 
-### 二、内容分类标记（按需使用）
+### 2.2 必须写注释的场景
 
-```typescript
-// BUSINESS: 业务逻辑说明
-// DESIGN: 设计决策理由
-// PERFORMANCE: 性能相关说明
-// SECURITY: 安全注意事项
-// COMPATIBILITY: 兼容性说明
-// TEST: 测试相关提示
-// ALGORITHM: 算法原理说明
-// CONFIG: 配置项说明
-// DATA: 数据结构说明
+- 公共 API（对外暴露的类、函数、接口）
+- 关键业务规则（如订单状态机、权限矩阵、依赖顺序）
+- 非明显设计决策（如"为什么用 JWT 而不是 Session"）
+- 安全/性能/兼容性等特殊考虑
+- 临时方案、已知缺陷、待办事项
+- 编译器指令（如 `@ts-expect-error`）必须附加原因说明
+
+### 2.3 不需要写注释的场景
+
+- 命名已经清晰表达意图的简单函数
+- 显而易见的属性、循环、条件判断
+- 类型定义已经足够说明的数据结构
+- 代码本身就是最好的文档
+- 通过 TypeScript 类型/接口已能完全自解释且无副作用的函数（仅需保留一句话业务意图）
+
+---
+
+## 三、统一注释标记体系
+
+### 3.1 核心标签（必须掌握，共 8 个）
+
+日常开发 80% 的场景用这 8 个就够了：
+
+| 标签                | 用途                                 | 示例                                                |
+| ------------------- | ------------------------------------ | --------------------------------------------------- |
+| `// NOTE:`          | 需要特别注意的说明                   | `// NOTE: 此处依赖全局配置，必须在 init 之后调用`   |
+| `// WARN:`          | 警告信息（比 NOTE 更严重）           | `// WARN: 修改此值会触发缓存失效，影响线上性能`     |
+| `// TODO(负责人):`  | 待办事项                             | `// TODO(@张三): 添加多语言支持 (关联 #123)`        |
+| `// FIXME(负责人):` | 待修复缺陷                           | `// FIXME(@张三): 边界值处理不正确 (关联 #456)`     |
+| `// WORKAROUND:`    | 变通方案说明（替代 HACK）            | `// WORKAROUND: 绕过第三方库 bug，待 v2 升级后移除` |
+| `// SECURITY:`      | 安全注意事项                         | `// SECURITY: 使用恒定时间比较，防止时序攻击`       |
+| `// BUSINESS:`      | 业务规则说明                         | `// BUSINESS: 连续失败 5 次锁定账户`                |
+| `// DESIGN:`        | 设计决策理由（含技术选型与具体原因） | `// DESIGN: 选择 JWT：无状态，易于水平扩展`         |
+
+### 3.2 扩展标签（按需使用）
+
+| 标签                | 用途                                                         |
+| ------------------- | ------------------------------------------------------------ |
+| `// PERFORMANCE:`   | 性能相关说明                                                 |
+| `// COMPATIBILITY:` | 兼容性说明                                                   |
+| `// ALGORITHM:`     | 算法原理说明                                                 |
+| `// REF:`           | 相关代码/文档引用                                            |
+| `// TIP:`           | 使用技巧或最佳实践                                           |
+| `// BUG:`           | 已知缺陷记录（区别于 FIXME：FIXME 是要修的，BUG 是记录在案的） |
+| `// DEPRECATED:`    | 已废弃，说明替代方案                                         |
+| `// OPTIMIZE:`      | 优化建议                                                     |
+| `// REFACTOR:`      | 重构建议                                                     |
+
+### 3.3 编译器指令规范（必须遵守）
+
+TypeScript 编译器指令在项目中频繁使用，必须规范化管理：
+
+| 指令                  | 规范                                                | 示例                                                         |
+| --------------------- | --------------------------------------------------- | ------------------------------------------------------------ |
+| `// @ts-expect-error` | **推荐使用**，必须附加 `FIXME` 说明原因和关联 Issue | `// @ts-expect-error - FIXME(@张三): 第三方库类型缺失，等待 PR 合并后移除 (#789)` |
+| `// @ts-ignore`       | **禁止使用**（除非极特殊情况，需经技术负责人批准）  | —                                                            |
+| `// @ts-nocheck`      | **禁止使用**，应在 tsconfig 中统一管理              | —                                                            |
+
+**理由**：`@ts-expect-error` 仅在下一行真正存在类型错误时才会生效，错误消除后会立即暴露，比 `@ts-ignore` 更安全。
+
+### 3.4 废弃标签（不推荐）
+
+以下标签不再推荐使用，请改用替代方案：
+
+| 废弃标签                                                     | 替代方案                              |
+| ------------------------------------------------------------ | ------------------------------------- |
+| `TEST_CASE` / `TEST_INPUT` / `TEST_EXPECT` / `TEST_SCENARIO` 等所有 `TEST_*` 标签 | 写真实的 `.test.ts` 文件              |
+| `QUESTION:`                                                  | 改用 TODO + Issue，或直接在 PR 中讨论 |
+| `EXPERIMENTAL:`                                              | 改用 JSDoc `@experimental` 标签       |
+| `CONFIG:` / `DATA:`                                          | 改用 JSDoc 在类型/字段上说明          |
+| `REASON:`                                                    | 合并入 `DESIGN` 标签                  |
+| `HACK:`                                                      | 改用 `WORKAROUND:`（更中性、更专业）  |
+
+**理由**：测试逻辑写在注释中会与真实测试代码产生双处维护，且无法被 CI 校验，最终必然失效。`REASON` 与 `DESIGN` 语义重叠，统一使用 `DESIGN` 即可涵盖"为什么"的意图。
+
+### 3.5 标签格式约定
+
+- 全大写，便于工具解析与视觉识别
+- 标签名称需用冒号和空格：`// NOTE: 内容`（不是 `// NOTE : 内容` 或 `// NOTE 内容`）
+- 标签用英文，内容与团队日常沟通语言保持一致（中文或英文均可，保持一致）
+- TODO/FIXME 必须带负责人：`// TODO(@张三): 描述`（推荐使用 `@` 前缀便于检索）
+- TODO/FIXME 推荐关联 Issue ID：`// TODO(@张三): 描述 (关联 #123)`
+
+---
+
+## 四、层次与结构标记
+
+这是 v1.2 中缺失的关键部分。不同场景使用不同标记，避免语义重叠。
+
+### 4.1 层次标记使用对照表
+
+| 场景                 | 推荐标记      | 示例                                             |
+| -------------------- | ------------- | ------------------------------------------------ |
+| 文件级说明           | 文件头 JSDoc  | `/** @file 用户登录服务 */`                      |
+| 类 / 接口说明        | 类级 JSDoc    | `/** 用户登录认证服务 */`                        |
+| 方法 / 函数说明      | 方法级 JSDoc  | `/** 执行用户认证 */`                            |
+| 类内方法分组         | 对称分隔符    | `// =============== 初始化阶段 ================` |
+| 函数内主要步骤       | `#` 单行标记  | `// # 输入验证`                                  |
+| 函数内子步骤（慎用） | `##` 单行标记 | `// ## 参数清洗`                                 |
+| 行内说明             | 标签注释      | `// NOTE: 需要特别注意的说明`                    |
+
+### 4.2 分隔符规范
+
+**主分隔符（类内方法分组）：**
+
+```
+// =============== 初始化阶段 ================
 ```
 
-### 三、说明性标记
+- 双边对称，等号数量建议 ≥ 6 对
+- 用于类、长函数内的大段分组
 
-```typescript
-// NOTE: 需要特别注意的说明
-// WARN: 警告信息（比NOTE更严重）
-// QUESTION: 疑问/待确认的问题
-// REF: 相关代码/文档引用
-// REASON: 解释"为什么这样做"
-// TIP: 使用技巧或最佳实践
+**子分隔符（函数内子模块，慎用）：**
+
+```
+// --------------- 参数清洗 ---------------
 ```
 
-### 四、开发状态标记（必须掌握）
+- 通常意味着需要提取为独立函数
+- 只在函数较长且子步骤语义独立时使用
 
-```typescript
-// TODO(负责人): YYYY-MM-DD 描述 [P0-URGENT|P1-IMPORTANT|P2-NICE_TO_HAVE]
-// FIXME(负责人): YYYY-MM-DD 描述 [P0-URGENT|P1-IMPORTANT]
-// HACK: 临时解决方案说明
-// DEPRECATED: 替代方案说明
-// OPTIMIZE: 优化建议
-// REFACTOR: 重构建议
-// EXPERIMENTAL: 实验性功能，API可能变更
-// BUG: 已知缺陷描述
+### 4.3 禁止的视觉装饰
+
+以下写法不符合规范：
+
+```
+// 单边箭头（v1.2 遗留）
+// =======================> INIT：初始化阶段
+
+// 全大写英文阶段前缀（规范无先例）
+// =======================> IMPORTING：导入阶段
+
+// 过度 emoji 装饰
+// 🚀✨🎉 开始处理用户数据 💫🔥⭐
+
+// 混合格式
+// ! 重要提示
+// [安全] 注意安全
+// TODO: 待办事项（缺少负责人）
 ```
 
-**优先级说明**：
-- `P0-URGENT`: 必须立即处理，如安全漏洞、严重性能问题
-- `P1-IMPORTANT`: 重要功能缺陷，应在当前迭代修复
-- `P2-NICE_TO_HAVE`: 优化建议，可在后续迭代安排
+**正确写法：**
 
-### 五、测试关联标记（注释即测试）
-
-```typescript
-// TEST_CASE: 测试用例ID或描述
-// TEST_SCENARIO: 测试场景描述
-// TEST_EXPECT: 预期行为说明
-// TEST_REQUIRE: 测试前置条件
-// TEST_INPUT: 测试输入参数
-// TEST_ASSERT: 断言条件说明
-// TEST_PERFORMANCE: 性能要求说明
-// TEST_SECURITY: 安全要求说明
 ```
+// 对称分隔符 + 纯中文/英文
+// =============== 初始化阶段 ================
 
-### 六、视觉引导标记（增强可读性）
+// 函数内步骤用 # 标记
+// # 参数清洗
 
-```typescript
-// ============= 主要区块标题 =============
-// 区块说明文字...
-
-// ------------ 子区块标题 ------------
-// 子区块说明...
-
-// --- 步骤/注意事项 ---
-// 具体说明...
+// 统一标签格式
+// WARN: 重要提示
+// SECURITY: 注意安全
+// TODO(@张三): 描述
 ```
 
 ---
 
-## 📊 注释密度指导
+## 五、JSDoc 标签规范
 
-### 决策流程
+v1.2 缺失的公共 API 文档规范。JSDoc 是公共 API 的主要文档载体。
 
-```mermaid
-graph TD
-    A[需要写注释吗?] --> B{是否为公共API?}
-    B -->|是| C[必须写JSDoc]
-    B -->|否| D{是否复杂业务逻辑?}
-    D -->|是| E[必须写业务注释]
-    D -->|否| F{是否有非明显实现?}
-    F -->|是| G[添加技术注释]
-    F -->|否| H[无需注释]
-```
+### 5.1 必须使用的标签（公共 API）
 
-### 量化标准
+- `@param` - 参数说明（每个参数必须）
+- `@returns` / `@return` - 返回值说明
+- `@throws` - 可能抛出的异常
 
-| 代码类型 | 建议注释覆盖率 | 注释要点 |
-|---------|---------------|----------|
-| **公共API** | 100% | 完整JSDoc + 示例 + 测试用例 |
-| **业务服务** | 60-80% | 业务规则 + 设计决策 + 测试场景 |
-| **工具函数** | 30-50% | 算法原理 + 边界条件 + 测试用例 |
-| **数据模型** | 100%字段 | 业务含义 + 约束条件 + 测试数据 |
+**例外（"类型即文档"豁免）**：
 
-### 注释行数控制
+如果函数参数和返回值通过 TypeScript 类型/接口已经能 100% 自解释（如简单 DTO、Redux Action 定义），且无副作用，允许省略 `@param`/`@returns`，只保留顶部的 `/** 一句话业务意图 */`。
 
-- 简单函数：≤ 20%代码行数
-- 复杂函数：≤ 40%代码行数  
-- 极复杂算法：≤ 60%代码行数（考虑拆分）
-
----
-
-## 📚 最佳实践示例
-
-### 示例1：用户登录服务（统一标记版）
+**示例（完整 JSDoc）：**
 
 ```typescript
 /**
- * 用户登录认证服务
- * 
- * @example
- * ```typescript
- * // TEST_CASE: Normal login flow
- * // TEST_REQUIRE: User registered, correct password
- * // TEST_EXPECT: Returns success status and valid token
- * const result = await loginService.authenticate('user@example.com', 'password123');
- * assert(result.success === true);
- * assert(typeof result.token === 'string');
- * ```
- * 
- * @see UserRepository.findByIdentifier
- * @see AuthService.generateToken
+ * 执行用户认证
+ *
+ * @param username - 用户名（邮箱或手机号）
+ * @param password - 密码（明文，前端已加密）
+ * @returns 认证结果及令牌
+ *
+ * @throws {ValidationError} 输入参数无效
+ * @throws {AuthError} 认证失败
  */
-class LoginService {
-  /**
-   * 执行用户认证
-   * 
-   * @param username - 用户名（邮箱或手机号）
-   * @param password - 密码（明文，前端已加密）
-   * @returns 认证结果及令牌
-   * 
-   * @throws {ValidationError} 输入参数无效
-   * @throws {AuthError} 认证失败
-   * @throws {AccountLockedError} 账户被锁定
-   * 
-   * @testScenario Normal login flow
-   * @testScenario Wrong password flow
-   * @testScenario Account locked flow
-   */
-  async authenticate(username: string, password: string): Promise<AuthResult> {
-    // ============= 输入验证阶段 =============
-    // WARN: 所有输入必须经过验证，防止注入攻击
-    // SECURITY: SQL注入和XSS防护
-    // TEST_CASE: 输入验证失败
-    // TEST_EXPECT: 抛出ValidationError异常
-    if (!this.isValidCredential(username, password)) {
-      throw new ValidationError('无效的凭据格式');
-    }
-    
-    // ============= 用户查询阶段 =============
-    // BUSINESS: 支持邮箱和手机号两种登录方式
-    // DESIGN: 将用户标识符统一处理，简化后续逻辑
-    const user = await this.findUserByIdentifier(username);
-    
-    // --- 用户存在性检查 ---
-    // TEST_CASE: 用户不存在
-    if (!user) {
-      // SECURITY: 用户不存在时也记录日志，用于安全分析
-      await this.recordFailedAttempt(null, username);
-      throw new AuthError('用户名或密码错误');
-    }
-    
-    // ============= 安全验证阶段 =============
-    // ## 账户状态检查
-    // BUSINESS: 连续失败5次锁定账户（需求: SEC-2024-001）
-    // TEST_CASE: 账户锁定验证
-    if (user.failedAttempts >= LOCK_THRESHOLD) {
-      throw new AccountLockedError('账户已锁定，请联系客服解锁');
-    }
-    
-    // ## 密码验证
-    // SECURITY: 使用恒定时间比较，防止时序攻击
-    // SECURITY: 即使密码错误也执行完整的验证流程
-    const isValid = await this.verifyPassword(password, user.passwordHash);
-    
-    if (!isValid) {
-      // BUSINESS: 记录失败尝试，用于安全分析
-      await this.recordFailedAttempt(user.id);
-      throw new AuthError('用户名或密码错误');
-    }
-    
-    // ============= 令牌生成阶段 =============
-    // DESIGN: 选择JWT：无状态、易于扩展、支持移动端
-    // PERFORMANCE: JWT签名消耗可接受，缓存可优化
-    const token = this.generateJWT(user);
-    
-    // ============= 后续处理阶段 =============
-    // NOTE: 异步执行，不阻塞响应
-    // TEST_CASE: 登录成功后续处理
-    this.updateLastLogin(user.id).catch(logError);
-    
-    // TODO(张三): 2024-03-20 添加登录设备记录功能 [P1-IMPORTANT]
-    // FIXME(李四): 2024-03-15 JWT密钥应移至环境变量 [P0-URGENT]
-    
-    return { 
-      success: true, 
-      token, 
-      user: this.sanitizeUser(user),
-      // DESIGN: 返回token过期时间，方便前端自动刷新
-      expiresIn: TOKEN_EXPIRY_SECONDS
-    };
-  }
+async authenticate(username: string, password: string): Promise<AuthResult> {
+    // ...
 }
 ```
 
-### 示例2：订单处理函数（统一标记版）
+**示例（豁免场景）：**
 
 ```typescript
-// ============= 订单处理主流程 =============
-// BUSINESS: 将订单处理视为状态机：验证 → 检查 → 支付 → 完成
-// TEST_SCENARIO: Normal order processing flow
-// TEST_SCENARIO: Out-of-stock order flow
-// TEST_SCENARIO: Payment failure flow
-async function processOrder(orderId: string): Promise<ProcessResult> {
-  // ------------ 订单验证阶段 ------------
-  const order = await orderRepository.findById(orderId);
-  
-  // BUSINESS: 已取消订单不应再处理
-  // TEST_CASE: Processing cancelled order
-  // TEST_EXPECT: Throws InvalidOrderError
-  if (order.status === OrderStatus.CANCELLED) {
-    throw new InvalidOrderError('订单已取消，无法处理');
-  }
-  
-  // ------------ 库存检查阶段 ------------
-  // BUSINESS: 预售商品跳过库存检查
-  // TEST_CASE: Pre-sale order processing
-  // TEST_EXPECT: Skips inventory check, proceeds to payment
-  if (!order.isPreSale) {
-    const hasStock = await inventoryService.checkStock(order.items);
-    if (!hasStock) {
-      // BUSINESS: 记录缺货商品，用于补货分析
-      await this.recordOutOfStockItems(order.items);
-      throw new OutOfStockError('部分商品缺货，已通知补货');
-    }
-  }
-  
-  // ============= 支付处理阶段 =============
-  // DESIGN: 保证支付事务原子性，避免部分成功
-  // SECURITY: 支付请求必须加密传输
-  const paymentResult = await paymentService.processPayment(order);
-  
-  // QUESTION: 支付失败重试策略待优化
-  // 当前：记录日志，人工处理
-  // 建议：实现指数退避自动重试
-  // BUG: 支付失败时未通知用户 [P1-IMPORTANT]
-  if (!paymentResult.success) {
-    logger.error('支付失败', { 
-      orderId, 
-      error: paymentResult.error,
-      // DESIGN: 记录支付网关响应，便于排查
-      gatewayResponse: paymentResult.gatewayResponse
-    });
-    throw new PaymentFailedError('支付失败，请稍后重试');
-  }
-  
-  // ============= 订单完成阶段 =============
-  // ## 状态更新
-  // TEST_CASE: Order status update
-  // TEST_EXPECT: Order status changes to completed
-  await orderRepository.updateStatus(orderId, 'completed');
-  
-  // ## 库存扣减
-  // PERFORMANCE: 必须在事务内完成，避免超卖
-  // TEST_CASE: Inventory deduction verification
-  await inventoryService.deductStock(order.items);
-  
-  // ## 发送通知
-  // NOTE: 非关键路径，失败不影响主流程
-  // TEST_CASE: Notification sending verification
-  notificationService.sendConfirmation(order).catch(logError);
-  
-  return { 
-    success: true, 
-    orderId,
-    // DESIGN: 返回处理时间戳，用于后续跟踪
-    processedAt: new Date().toISOString()
-  };
+/** 用户登录请求参数 */
+interface LoginRequest {
+    username: string;
+    password: string;
 }
+
+// 参数类型已完全自解释，省略 @param/@returns，保留意图即可
+/** 执行用户登录，返回会话令牌 */
+function login(req: LoginRequest): Promise<string> {
+    // ...
+}
+```
+
+### 5.2 推荐使用的标签
+
+| 标签            | 用途                   |
+| --------------- | ---------------------- |
+| `@deprecated`   | 标记废弃，附替代方案   |
+| `@see`          | 相关 API 引用          |
+| `@example`      | 使用示例               |
+| `@internal`     | 标记内部 API（不对外） |
+| `@experimental` | 实验性 API，可能变更   |
+| `@override`     | 重写父类方法           |
+
+### 5.3 JSDoc 格式约定
+
+统一使用多行格式，避免与格式化工具冲突：
+
+```typescript
+/**
+ * 单行注释也使用多行格式
+ */
+
+/**
+ * 多行注释
+ *
+ * 第二段说明
+ */
+```
+
+**注意**：`/**` 和 `*/` 各占一行，第二行起以 `*` 开头（空格-星号-空格），段落间用空行分隔。
+
+---
+
+## 六、TODO / FIXME 规范
+
+### 6.1 最低要求（必须遵守）
+
+```
+// TODO(@负责人): 描述
+// FIXME(@负责人): 描述
+```
+
+负责人推荐使用 `@` 前缀（如 `@张三` 或 `@githubUsername`），便于全局检索。
+
+### 6.2 完整格式（推荐用于重要事项）
+
+```
+// TODO(@张三): 2026-08-20 添加多语言支持 (关联 #123) [P1]
+// FIXME(@张三): 2026-08-15 边界值 0 时返回错误 (关联 #456) [P0]
+```
+
+- **日期**：预期完成时间
+- **关联 Issue**：关联的 GitHub/GitLab Issue ID，便于追溯
+- **优先级**：P0 / P1 / P2（见 6.3）
+
+### 6.3 优先级定义
+
+- **P0** - 必须立即处理（安全漏洞、严重 Bug、阻塞上线）
+- **P1** - 重要，当前迭代修复
+- **P2** - 优化建议，后续迭代安排
+
+省略优先级时默认为 P2。
+
+### 6.4 为什么要关联 Issue？
+
+TODO/FIXME 注释仅作为代码中的"索引指针"，不应承载项目管理职责（如截止日期追踪、进度更新）。通过关联 Issue ID，将所有管理和追踪工作集中在 Issue 系统中，避免注释过时。
+
+---
+
+## 七、AI 生成注释标识
+
+AI 辅助生成的注释应在文件级或类级 JSDoc 中标注来源，便于后续审查与追溯。
+
+### 7.1 文件级标识
+
+```typescript
+/**
+ * @file 用户登录服务
+ *
+ * @ai-generated claude-4.6
+ * @ai-reviewed 张三 2026-07-17
+ */
+```
+
+### 7.2 类/方法级标识（可选）
+
+对于完全由 AI 生成且未经人工审查的复杂逻辑，可在方法 JSDoc 中标注：
+
+```typescript
+/**
+ * 复杂算法实现
+ *
+ * @ai-generated claude-4.6
+ * @ai-pending-review
+ */
+```
+
+### 7.3 标识约定
+
+| 标签                 | 含义                       |
+| -------------------- | -------------------------- |
+| `@ai-generated`      | AI 生成，标注模型版本      |
+| `@ai-reviewed`       | 已人工审查，附审查人与日期 |
+| `@ai-pending-review` | 待人工审查                 |
+
+**必须标识的情况**：
+
+- AI 生成的完整模块/文件
+- AI 生成的复杂算法
+- AI 生成的、开发者未完全理解其原理的代码
+
+**不强制标识的情况**：
+
+- AI 辅助生成的简单胶水代码
+- AI 辅助编写的单行注释或文档字符串
+
+---
+
+## 八、文件头注释
+
+### 8.1 何时必须添加（硬性触发条件）
+
+满足以下任一条件时，文件头注释为**必须**：
+
+1. 文件包含 `export` 对外暴露的公共 API
+2. 文件包含 `main` 入口函数或顶级 `async` 调用
+3. 文件行数超过 **500 行**（强制添加，明确责任归属）
+
+不满足上述条件的文件（如纯类型定义文件、简单工具函数文件）不需要文件头注释。
+
+### 8.2 推荐格式
+
+```typescript
+/**
+ * @file 模块名称
+ *
+ * 模块职责说明（一两句话）
+ *
+ * 导入流程（若为复杂流程）：
+ * 初始化 → 解析 → 转换 → 输出
+ */
 ```
 
 ---
 
-## 🧪 注释即测试工作流
+## 九、何时删除与清理注释
 
-### 完整工作流程
+注释腐化的主要原因是没有及时清理。以下场景必须同步删除注释：
 
-```mermaid
-graph TD
-    A[编写代码时添加测试注释] --> B[开发阶段运行注释测试]
-    B --> C{所有测试通过?}
-    C -->|否| D[修复代码或注释]
-    C -->|是| E[提交代码]
-    E --> F[CI/CD提取测试用例]
-    F --> G[生成自动化测试]
-    G --> H[运行自动化测试]
-    H --> I{测试通过?}
-    I -->|否| J[通知开发者]
-    I -->|是| K[部署/合并]
-    
-    L[定期同步] --> M[保持注释与测试一致]
-    M --> N[清理过期测试用例]
-```
+| 场景              | 操作                                         |
+| ----------------- | -------------------------------------------- |
+| 删除代码          | 同步删除相关注释                             |
+| 修改代码          | 检查相关注释是否仍然准确，不准确就更新或删除 |
+| 重构后命名变清晰  | 删除冗余的"废话注释"                         |
+| TODO 已完成       | 删除 TODO 标记（不要保留"已完成"注释）       |
+| FIXME 已修复      | 删除 FIXME 标记                              |
+| WORKAROUND 已迁移 | 删除 WORKAROUND 标记                         |
+| 文件/模块废弃     | 删除或标注 `@deprecated`                     |
 
-### 1. 开发阶段：注释驱动测试
+**代码审查检查点**：每次 PR 必须检查是否有"过期注释"——即注释描述的行为与代码实际行为不符。
 
-```typescript
-// 开发时添加测试注释
-function calculateDiscount(price: number, userType: UserType): number {
-  // TEST_CASE: VIP用户折扣计算
-  // TEST_INPUT: price=100, userType='VIP'
-  // TEST_EXPECT: 返回90 (10%折扣)
-  // TEST_CASE: 普通用户折扣计算
-  // TEST_INPUT: price=100, userType='NORMAL'
-  // TEST_EXPECT: 返回95 (5%折扣)
-  // TEST_CASE: 价格低于门槛无折扣
-  // TEST_INPUT: price=49, userType='VIP'
-  // TEST_EXPECT: 返回49 (无折扣)
-  
-  if (price < 50) return price;
-  
-  const discountRate = userType === 'VIP' ? 0.1 : 0.05;
-  return price * (1 - discountRate);
-}
-```
+### 定期清理计划
 
-### 2. 工具配置：测试注释提取
-
-```javascript
-// jest.config.js - 配置测试注释处理器
-module.exports = {
-  // ... 其他配置
-  setupFilesAfterEnv: [
-    './test/setupCommentTests.js'
-  ],
-  // 自定义处理器，从注释提取测试用例
-  testMatch: [
-    '**/__tests__/**/*.[jt]s?(x)',
-    '**/?(*.)+(spec|test).[jt]s?(x)',
-    '**/?(*.)+(comment-test).[jt]s?(x)' // 注释测试文件
-  ]
-};
-```
-
-```javascript
-// scripts/extract-comment-tests.js
-/**
- * 从源代码提取注释中的测试用例
- * 生成对应的Jest测试文件
- */
-async function extractCommentTests() {
-  // 1. 扫描所有.ts文件
-  // 2. 提取TEST_CASE、TEST_INPUT、TEST_EXPECT等标记
-  // 3. 生成对应的.test.ts文件
-  // 4. 更新测试用例索引
-}
-```
-
-### 3. CI/CD集成：自动化验证
-
-```yaml
-# .github/workflows/comment-tests.yml
-name: Comment Tests Validation
-
-on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main]
-
-jobs:
-  validate-comments:
-    runs-on: ubuntu-latest
-    
-    steps:
-    - uses: actions/checkout@v3
-    
-    - name: Extract comment tests
-      run: |
-        npm run extract-comment-tests
-        # 生成测试报告
-        
-    - name: Run generated tests
-      run: |
-        npm run test:comment-generated
-        
-    - name: Check comment coverage
-      run: |
-        npm run check-comment-coverage
-        # 检查关键函数是否有测试注释
-        
-    - name: Validate TODO/FIXME dates
-      run: |
-        npm run validate-todo-dates
-        # 检查TODO/FIXME是否过期
-```
-
-### 4. 测试注释规范
-
-```typescript
-// 完整测试注释模板
-/**
- * 函数功能描述
- * 
- * @testScenario 场景1描述
- * @testScenario 场景2描述
- * 
- * @testCase 测试用例1
- * @testInput param1=value1, param2=value2
- * @testExpect 预期输出或行为
- * @testRequire 前置条件
- * @testEdge 边界条件说明
- * @testPerformance 性能要求
- */
-function exampleFunction(param1: string, param2: number): Result {
-  // TEST_CASE: 测试用例ID或简短描述
-  // TEST_INPUT: 输入参数说明
-  // TEST_EXPECT: 预期输出
-  // TEST_ASSERT: 断言条件
-  // TEST_REQUIRE: 前置条件
-  // TEST_PERFORMANCE: 性能要求（如<100ms）
-  // TEST_SECURITY: 安全要求
-  // TEST_COMPATIBILITY: 兼容性要求
-  
-  return result;
-}
-```
+- **每两周**：清理已完成的 TODO/FIXME
+- **每月**：review 关键模块的注释准确性
+- **每季度**：评估规范适用性，必要时修订
 
 ---
 
-## 🚫 注释反模式
+## 十、反模式
 
-### 1. **废话注释**
+### 10.1 废话注释（重复代码语义）
+
 ```typescript
-// ❌ 坏 - 重复代码
-const users = getUsers();  // 获取用户列表
+// 坏
+const users = getUsers(); // 获取用户列表
 
-// ✅ 好 - 说明原因
-const users = getUsers();  // PERFORMANCE: 缓存用户数据，减少DB查询
+// 好
+const users = getUsers(); // PERFORMANCE: 缓存用户数据，减少 DB 查询
 ```
 
-### 2. **过时注释**
+### 10.2 过时注释（与代码不符）
+
 ```typescript
-// ❌ 坏 - 注释与代码不符
+// 坏：注释说同步，代码是异步
 // 这里使用同步读取
 const data = await fs.readFileAsync('file.txt');
 
-// ✅ 好 - 保持同步
+// 好：删除或更新
 const data = await fs.readFileAsync('file.txt');
 // DESIGN: 使用异步读取避免阻塞事件循环
 ```
 
-### 3. **过度装饰**
+### 10.3 过度装饰
+
 ```typescript
-// ❌ 坏 - 过多emoji干扰阅读
+// 坏
 // 🚀✨🎉 开始处理用户数据 💫🔥⭐
 
-// ✅ 好 - 简洁专业
-// ============= 用户数据处理 =============
+// 好
+// =============== 用户数据处理 ================
 ```
 
-### 4. **不一致的标记格式**
+### 10.4 标签格式不一致
+
 ```typescript
-// ❌ 坏 - 混合使用不同格式
+// 坏
 // ! 重要提示
 // [安全] 注意安全
 // TODO: 待办事项
 
-// ✅ 好 - 统一格式
+// 好
 // WARN: 重要提示
 // SECURITY: 注意安全
-// TODO(张三): 2024-03-15 待办事项
+// TODO(@张三): 待办事项
+```
+
+### 10.5 注释替代版本控制
+
+```typescript
+// 坏：保留历史代码
+// const oldData = fetchOldApi();
+// const legacyData = fetchLegacyApi();
+const data = fetchNewApi();
+
+// 好：用 git 查历史，代码只保留当前版本
+const data = fetchNewApi();
+```
+
+### 10.6 情绪化注释
+
+```typescript
+// 坏
+// 这个接口设计得真糟糕，返回值居然是字符串
+// FIXME: 这个 bug 简直无解
+
+// 好
+// WARN: 返回值类型为 string 而非标准 Promise<Result>，需在调用方处理
+// FIXME(@张三): 处理超时场景下的状态丢失问题 (关联 #789)
+```
+
+### 10.7 滥用编译器指令
+
+```typescript
+// 坏：随意忽略类型错误，无任何说明
+// @ts-expect-error
+
+// 好：说明原因，有责任人，有关联 Issue
+// @ts-expect-error - FIXME(@张三): 库 @types/foo v1.2.3 类型定义错误，等待上游修复 (#456)
 ```
 
 ---
 
-## 🛠️ 工具支持
+## 十一、代码审查与团队协作
 
-### ESLint配置（增强版）
-```javascript
-// .eslintrc.js
-module.exports = {
-  plugins: [
-    'jsdoc', 
-    'todo-check',
-    'comment-test', // 自定义插件：检查测试注释
-    'comment-format' // 自定义插件：检查注释格式
-  ],
-  
-  rules: {
-    // JSDoc要求
-    'jsdoc/require-jsdoc': ['error', {
-      require: {
-        FunctionDeclaration: true,
-        MethodDefinition: true,
-        ClassDeclaration: true,
-        ArrowFunctionExpression: false
-      }
-    }],
-    
-    // 注释格式检查
-    'comment-format/validate': ['warn', {
-      allowedPatterns: [
-        '^\\s*//\\s*(#+|\\w+:)', // 允许#标题和标签:格式
-        '^\\s*//\\s*[=|-]',      // 允许视觉引导标记
-        '^\\s*//\\s*$',          // 允许空注释行
-      ],
-      message: '请使用标准注释格式：标签: 内容 或 # 标题'
-    }],
-    
-    // 标签格式检查
-    'comment-format/valid-tags': ['error', {
-      allowedTags: [
-        // 内容分类标签
-        'BUSINESS', 'DESIGN', 'PERFORMANCE', 'SECURITY', 'COMPATIBILITY', 
-        'TEST', 'ALGORITHM', 'CONFIG', 'DATA',
-        // 说明性标签
-        'NOTE', 'WARN', 'QUESTION', 'REF', 'REASON', 'TIP',
-        // 开发状态标签
-        'TODO', 'FIXME', 'HACK', 'DEPRECATED', 'OPTIMIZE', 
-        'REFACTOR', 'EXPERIMENTAL', 'BUG',
-        // 测试标签
-        'TEST_CASE', 'TEST_SCENARIO', 'TEST_EXPECT', 'TEST_REQUIRE',
-        'TEST_INPUT', 'TEST_ASSERT', 'TEST_PERFORMANCE', 'TEST_SECURITY'
-      ],
-      requireColon: true
-    }],
-    
-    // TODO管理
-    'todo-check/todo-check': ['error', {
-      terms: ['TODO', 'FIXME', 'BUG', 'HACK'],
-      location: 'start',
-      dateFormat: 'YYYY-MM-DD'
-    }],
-    
-    // 测试注释覆盖率
-    'comment-test/coverage': ['warn', {
-      minPublicApiCoverage: 0.8,
-      minComplexFunctionCoverage: 0.6
-    }]
-  }
-};
-```
+### 11.1 代码审查清单
 
-### VSCode代码片段（增强版）
-```json
-{
-  "Visual Block Comment": {
-    "prefix": "c=",
-    "body": "// ============= ${1:区块标题} =============\n// ${2:说明文字}$0",
-    "description": "视觉区块注释"
-  },
-  "Visual Subblock Comment": {
-    "prefix": "c-",
-    "body": "// ------------ ${1:子区块标题} ------------\n// ${2:说明文字}$0",
-    "description": "视觉子区块注释"
-  },
-  "Business Comment": {
-    "prefix": "cb",
-    "body": "// BUSINESS: ${1:业务逻辑说明}$0",
-    "description": "业务注释"
-  },
-  "Design Comment": {
-    "prefix": "cd",
-    "body": "// DESIGN: ${1:设计决策理由}$0",
-    "description": "设计注释"
-  },
-  "Security Comment": {
-    "prefix": "cs",
-    "body": "// SECURITY: ${1:安全注意事项}$0",
-    "description": "安全注释"
-  },
-  "Note Comment": {
-    "prefix": "cn",
-    "body": "// NOTE: ${1:需要特别注意的说明}$0",
-    "description": "注意注释"
-  },
-  "Warning Comment": {
-    "prefix": "cw",
-    "body": "// WARN: ${1:警告信息}$0",
-    "description": "警告注释"
-  },
-  "Test Case Comment": {
-    "prefix": "ctc",
-    "body": "// TEST_CASE: ${1:测试用例描述}\n// TEST_INPUT: ${2:输入参数}\n// TEST_EXPECT: ${3:预期结果}$0",
-    "description": "测试用例注释"
-  },
-  "Todo with Priority": {
-    "prefix": "todo",
-    "body": "// TODO(${1|张三,李四,王五|}): ${CURRENT_YEAR}-${CURRENT_MONTH}-${CURRENT_DATE} ${2:描述} [${3|P0-URGENT,P1-IMPORTANT,P2-NICE_TO_HAVE|}]",
-    "description": "带优先级的待办事项"
-  }
-}
-```
+PR 审查时必须确认：
 
-### 专用工具脚本
+1. 公共 API 是否有完整 JSDoc（`@param` / `@returns` / `@throws`）？是否适用豁免条件？
+2. 关键业务逻辑是否说明清楚（`BUSINESS` / `DESIGN`）？
+3. 是否使用了统一的标准注释格式（核心 8 个标签）？
+4. TODO/FIXME 是否有负责人？是否有明确描述？是否关联 Issue？
+5. 注释是否与代码保持同步？没有过期注释？
+6. 安全相关代码是否有 `SECURITY` 注释？
+7. 是否有废话注释、情绪化注释、装饰性注释？
+8. AI 生成内容是否被标识？
+9. 删除的代码是否同步删除了相关注释？
+10. 类内分组是否使用对称分隔符（而非箭头）？
+11. `@ts-expect-error` 是否附加了 `FIXME` 说明？`@ts-ignore` 是否被杜绝？
+12. 文件是否满足文件头注释的硬性触发条件？若满足，是否已添加？
+
+### 11.2 团队协作机制
+
+1. **新成员培训**：30 分钟掌握 8 个核心标签 + 层次标记对照表
+2. **代码审查**：注释质量纳入 review 标准（即上述清单）
+3. **知识分享**：定期分享优秀注释案例
+
+---
+
+## 十二、完整示例
+
+### 示例：通用 EDA 格式导入器（参考实际项目）
+
 ```typescript
-// scripts/comment-analytics.ts
 /**
- * 注释分析工具
- * 提供注释覆盖率、质量评分等功能
+ * @file 通用 EDA 格式导入器
+ *
+ * 导入流程（状态机）：
+ *   初始化 → 导入（排序 → 过滤 → 逐一解码） → 收尾
+ *
+ * @ai-reviewed 李四 2026-07-17
  */
 
-interface CommentMetrics {
-  totalLines: number;
-  commentLines: number;
-  jsdocCoverage: number;
-  todoCount: number;
-  fixmeCount: number;
-  testCommentCount: number;
-  commentQualityScore: number; // 0-100
+export abstract class CommonEDAImporter extends EDAImporter {
+    /**
+     * 中间格式代理
+     */
+    proxy: ChameleonProxy;
+
+    /**
+     * 通用 EDA 格式导入器
+     *
+     * @param fileExtensions - 支持导入的文件扩展名白名单
+     */
+    constructor(fileExtensions: string[]) {
+        super();
+        this.fileExtensions = fileExtensions;
+    }
+
+    // =============== 初始化阶段 ================
+
+    /**
+     * 初始化导入器状态（子类实现）
+     */
+    protected abstract initImporterState(): void;
+
+    // =============== 导入阶段 ================
+
+    /**
+     * 导入目标格式
+     *
+     * @param decodeSource - 解码源数据
+     * @param proxy - 中间格式代理
+     */
+    import(decodeSource: EDAImportConfig, proxy: ChameleonProxy) {
+        // # 初始化
+        this.initImportStateCommon(decodeSource, proxy);
+
+        // # 导入主循环
+        this.importing();
+
+        // # 收尾
+        this.finishImportingCommon();
+    }
+
+    protected importing() {
+        // BUSINESS: 按依赖关系排序，否则后续引用会失败（工程配置 > 库 > 图页）
+        const sortItems = decodingData.sort((a, b) => sortingImportItem(a) - sortingImportItem(b));
+
+        // DESIGN: 按扩展名自动过滤，仅处理已支持的文件类型
+        const filterItems = sortItems.filter(item => this.fileExtensions.includes(item.extension));
+
+        // # 文件逐一解码
+        filterItems.forEach(item => this.decodeFile(item));
+    }
 }
-
-// 分析项目注释质量
-async function analyzeComments(): Promise<CommentMetrics> {
-  // 实现注释分析逻辑
-  // 1. 扫描所有TypeScript文件
-  // 2. 统计注释行数和总行数
-  // 3. 检查JSDoc覆盖率
-  // 4. 统计各类标签使用情况
-  // 5. 评估注释质量（格式规范性、内容价值等）
-  // 6. 生成报告
-}
 ```
 
 ---
 
-## 📋 代码审查清单（增强版）
+> **注释是工具，不是目的。最好的文档是清晰的代码本身，最好的注释是恰到好处的补充。在可读性、维护成本和开发效率之间找到平衡。**
 
-### 提交前检查
-```bash
-# 1. 语法和类型检查
-npm run type-check
-
-# 2. 代码规范检查  
-npm run lint
-
-# 3. TODO/FIXME扫描和过期检查
-npm run check-todos
-
-# 4. 测试注释提取和验证
-npm run extract-test-comments
-
-# 5. 注释覆盖率报告
-npm run comment-coverage
-
-# 6. 注释格式验证
-npm run validate-comment-format
-```
-
-### 审查要点
-1. ✅ 公共API是否有完整JSDoc和测试示例？
-2. ✅ 复杂业务逻辑是否说明清楚并有测试场景？
-3. ✅ 是否使用了统一的标准注释格式？
-4. ✅ TODO/FIXME是否有明确描述、日期和优先级？
-5. ✅ 注释是否与代码保持同步？
-6. ✅ 是否有"注释即测试"的测试用例？
-7. ✅ 设计决策是否有充分的REASON说明？
-8. ✅ 视觉引导是否增强了可读性而非干扰？
-9. ✅ 标签是否使用英文大写格式？
-10. ✅ 安全相关代码是否有SECURITY注释？
-
----
-
-## 🔄 维护与演进
-
-### 注释更新流程
-```
-修改代码 → 检查相关注释 → 更新/删除注释 → 运行检查 → 提交
-```
-
-### 定期清理计划
-- **每周**：清理过期的TODO标记
-- **每两周**：同步测试注释与自动化测试
-- **每月**：review关键模块的注释准确性  
-- **每季度**：评估注释规范适用性，必要时调整
-
-### 团队协作机制
-1. **新成员培训**：2小时掌握核心标记体系
-2. **代码审查**：注释质量纳入review标准，特别关注格式一致性
-3. **知识分享**：定期分享优秀注释案例，讨论最佳实践
-4. **注释研讨会**：每月讨论注释规范演进和改进
-
----
-
-## 📅 版本记录
-
-| 版本 | 日期 | 变更说明 |
-|------|------|----------|
-| v1.0 | 2026-01-05 | 初始版本，制定基础规范 |
-| v1.1 | 2026-01-14 | 新增"注释即测试"工作流，增强视觉引导 |
-| v1.2 | 2026-01-15 | 统一标记格式为"标签: 内容"，使用英文大写标签 |
-
----
-
-## ❓ 常见问题
-
-**Q：何时应该写注释？**  
-A：当代码无法清晰表达意图时，特别是：业务规则、设计决策、复杂算法、安全考虑、测试场景。
-
-**Q：注释应该多详细？**  
-A：足够让其他开发者（包括6个月后的你）快速理解，无需过度。使用视觉引导提高可读性。
-
-**Q：如何保持注释更新？**  
-A：修改代码时同步修改注释，定期review，工具自动化检查，CI/CD强制验证。
-
-**Q：为什么要用英文标签？**  
-A：英文标签更国际化，便于工具解析，避免编码问题，且与TypeScript/JSDoc生态一致。
-
-**Q：测试注释真的能替代测试代码吗？**  
-A：不是替代，而是补充。测试注释帮助理解测试意图，可以自动生成测试骨架，但仍需编写具体测试逻辑。
-
-**Q：标签太多记不住？**  
-A：先掌握核心标签（TODO、NOTE、WARN、BUSINESS、DESIGN、SECURITY），其他按需使用。IDE代码片段可以帮助快速输入。
-
----
-
-## 🚀 下一步计划
-
-### v1.3 规划功能
-1. **AI辅助注释生成** - 集成AI工具自动生成和优化注释
-2. **注释质量度量指标** - 建立可量化的注释质量评估体系
-3. **IDE深度集成** - 开发团队专属的VSCode扩展，提供智能提示
-4. **多语言支持** - 支持国际化团队的注释翻译和同步
-
-### 立即行动项
-1. 在团队中推广统一标记体系
-2. 配置CI/CD注释检查流水线
-3. 开展注释规范培训
-4. 收集使用反馈，持续优化
-5. 建立标签使用统计和优化机制
-
-> **最终建议**：注释是工具，不是目的。最好的文档是清晰的代码本身，最好的注释是恰到好处的补充。在可读性、维护成本和开发效率间找到平衡。
-
-*本文档将持续演进，欢迎通过团队渠道反馈建议*
+*本文档将持续演进，换一通过反馈建议。*
