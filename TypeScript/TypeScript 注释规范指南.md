@@ -2,7 +2,7 @@
 updatedDate: 2026-07-17
 ---
 
-# TypeScript 代码注释规范指南 v1.3
+# TypeScript 注释规范指南 v1.3
 
 ---
 
@@ -93,27 +93,27 @@ updatedDate: 2026-07-17
 
 ### 3.2 扩展标签（按需使用）
 
-| 标签                | 用途                                                         |
-| ------------------- | ------------------------------------------------------------ |
-| `// PERFORMANCE:`   | 性能相关说明                                                 |
-| `// COMPATIBILITY:` | 兼容性说明                                                   |
-| `// ALGORITHM:`     | 算法原理说明                                                 |
-| `// REF:`           | 相关代码/文档引用                                            |
-| `// TIP:`           | 使用技巧或最佳实践                                           |
+| 标签                | 用途                                                           |
+| ------------------- | -------------------------------------------------------------- |
+| `// PERFORMANCE:`   | 性能相关说明                                                   |
+| `// COMPATIBILITY:` | 兼容性说明                                                     |
+| `// ALGORITHM:`     | 算法原理说明                                                   |
+| `// REF:`           | 相关代码/文档引用                                              |
+| `// TIP:`           | 使用技巧或最佳实践                                             |
 | `// BUG:`           | 已知缺陷记录（区别于 FIXME：FIXME 是要修的，BUG 是记录在案的） |
-| `// DEPRECATED:`    | 已废弃，说明替代方案                                         |
-| `// OPTIMIZE:`      | 优化建议                                                     |
-| `// REFACTOR:`      | 重构建议                                                     |
+| `// DEPRECATED:`    | 已废弃，说明替代方案                                           |
+| `// OPTIMIZE:`      | 优化建议                                                       |
+| `// REFACTOR:`      | 重构建议                                                       |
 
 ### 3.3 编译器指令规范（必须遵守）
 
 TypeScript 编译器指令在项目中频繁使用，必须规范化管理：
 
-| 指令                  | 规范                                                | 示例                                                         |
-| --------------------- | --------------------------------------------------- | ------------------------------------------------------------ |
+| 指令                  | 规范                                                | 示例                                                                              |
+| --------------------- | --------------------------------------------------- | --------------------------------------------------------------------------------- |
 | `// @ts-expect-error` | **推荐使用**，必须附加 `FIXME` 说明原因和关联 Issue | `// @ts-expect-error - FIXME(@张三): 第三方库类型缺失，等待 PR 合并后移除 (#789)` |
-| `// @ts-ignore`       | **禁止使用**（除非极特殊情况，需经技术负责人批准）  | —                                                            |
-| `// @ts-nocheck`      | **禁止使用**，应在 tsconfig 中统一管理              | —                                                            |
+| `// @ts-ignore`       | **禁止使用**（除非极特殊情况，需经技术负责人批准）  | —                                                                                 |
+| `// @ts-nocheck`      | **禁止使用**，应在 tsconfig 中统一管理              | —                                                                                 |
 
 **理由**：`@ts-expect-error` 仅在下一行真正存在类型错误时才会生效，错误消除后会立即暴露，比 `@ts-ignore` 更安全。
 
@@ -121,14 +121,14 @@ TypeScript 编译器指令在项目中频繁使用，必须规范化管理：
 
 以下标签不再推荐使用，请改用替代方案：
 
-| 废弃标签                                                     | 替代方案                              |
-| ------------------------------------------------------------ | ------------------------------------- |
+| 废弃标签                                                                          | 替代方案                              |
+| --------------------------------------------------------------------------------- | ------------------------------------- |
 | `TEST_CASE` / `TEST_INPUT` / `TEST_EXPECT` / `TEST_SCENARIO` 等所有 `TEST_*` 标签 | 写真实的 `.test.ts` 文件              |
-| `QUESTION:`                                                  | 改用 TODO + Issue，或直接在 PR 中讨论 |
-| `EXPERIMENTAL:`                                              | 改用 JSDoc `@experimental` 标签       |
-| `CONFIG:` / `DATA:`                                          | 改用 JSDoc 在类型/字段上说明          |
-| `REASON:`                                                    | 合并入 `DESIGN` 标签                  |
-| `HACK:`                                                      | 改用 `WORKAROUND:`（更中性、更专业）  |
+| `QUESTION:`                                                                       | 改用 TODO + Issue，或直接在 PR 中讨论 |
+| `EXPERIMENTAL:`                                                                   | 改用 JSDoc `@experimental` 标签       |
+| `CONFIG:` / `DATA:`                                                               | 改用 JSDoc 在类型/字段上说明          |
+| `REASON:`                                                                         | 合并入 `DESIGN` 标签                  |
+| `HACK:`                                                                           | 改用 `WORKAROUND:`（更中性、更专业）  |
 
 **理由**：测试逻辑写在注释中会与真实测试代码产生双处维护，且无法被 CI 校验，最终必然失效。`REASON` 与 `DESIGN` 语义重叠，统一使用 `DESIGN` 即可涵盖"为什么"的意图。
 
@@ -252,14 +252,14 @@ async authenticate(username: string, password: string): Promise<AuthResult> {
 ```typescript
 /** 用户登录请求参数 */
 interface LoginRequest {
-    username: string;
-    password: string;
+  username: string;
+  password: string;
 }
 
 // 参数类型已完全自解释，省略 @param/@returns，保留意图即可
 /** 执行用户登录，返回会话令牌 */
 function login(req: LoginRequest): Promise<string> {
-    // ...
+  // ...
 }
 ```
 
@@ -447,10 +447,10 @@ const users = getUsers(); // PERFORMANCE: 缓存用户数据，减少 DB 查询
 ```typescript
 // 坏：注释说同步，代码是异步
 // 这里使用同步读取
-const data = await fs.readFileAsync('file.txt');
+const data = await fs.readFileAsync("file.txt");
 
 // 好：删除或更新
-const data = await fs.readFileAsync('file.txt');
+const data = await fs.readFileAsync("file.txt");
 // DESIGN: 使用异步读取避免阻塞事件循环
 ```
 
@@ -556,57 +556,61 @@ PR 审查时必须确认：
  */
 
 export abstract class CommonEDAImporter extends EDAImporter {
-    /**
-     * 中间格式代理
-     */
-    proxy: ChameleonProxy;
+  /**
+   * 中间格式代理
+   */
+  proxy: ChameleonProxy;
 
-    /**
-     * 通用 EDA 格式导入器
-     *
-     * @param fileExtensions - 支持导入的文件扩展名白名单
-     */
-    constructor(fileExtensions: string[]) {
-        super();
-        this.fileExtensions = fileExtensions;
-    }
+  /**
+   * 通用 EDA 格式导入器
+   *
+   * @param fileExtensions - 支持导入的文件扩展名白名单
+   */
+  constructor(fileExtensions: string[]) {
+    super();
+    this.fileExtensions = fileExtensions;
+  }
 
-    // =============== 初始化阶段 ================
+  // =============== 初始化阶段 ================
 
-    /**
-     * 初始化导入器状态（子类实现）
-     */
-    protected abstract initImporterState(): void;
+  /**
+   * 初始化导入器状态（子类实现）
+   */
+  protected abstract initImporterState(): void;
 
-    // =============== 导入阶段 ================
+  // =============== 导入阶段 ================
 
-    /**
-     * 导入目标格式
-     *
-     * @param decodeSource - 解码源数据
-     * @param proxy - 中间格式代理
-     */
-    import(decodeSource: EDAImportConfig, proxy: ChameleonProxy) {
-        // # 初始化
-        this.initImportStateCommon(decodeSource, proxy);
+  /**
+   * 导入目标格式
+   *
+   * @param decodeSource - 解码源数据
+   * @param proxy - 中间格式代理
+   */
+  import(decodeSource: EDAImportConfig, proxy: ChameleonProxy) {
+    // # 初始化
+    this.initImportStateCommon(decodeSource, proxy);
 
-        // # 导入主循环
-        this.importing();
+    // # 导入主循环
+    this.importing();
 
-        // # 收尾
-        this.finishImportingCommon();
-    }
+    // # 收尾
+    this.finishImportingCommon();
+  }
 
-    protected importing() {
-        // BUSINESS: 按依赖关系排序，否则后续引用会失败（工程配置 > 库 > 图页）
-        const sortItems = decodingData.sort((a, b) => sortingImportItem(a) - sortingImportItem(b));
+  protected importing() {
+    // BUSINESS: 按依赖关系排序，否则后续引用会失败（工程配置 > 库 > 图页）
+    const sortItems = decodingData.sort(
+      (a, b) => sortingImportItem(a) - sortingImportItem(b),
+    );
 
-        // DESIGN: 按扩展名自动过滤，仅处理已支持的文件类型
-        const filterItems = sortItems.filter(item => this.fileExtensions.includes(item.extension));
+    // DESIGN: 按扩展名自动过滤，仅处理已支持的文件类型
+    const filterItems = sortItems.filter((item) =>
+      this.fileExtensions.includes(item.extension),
+    );
 
-        // # 文件逐一解码
-        filterItems.forEach(item => this.decodeFile(item));
-    }
+    // # 文件逐一解码
+    filterItems.forEach((item) => this.decodeFile(item));
+  }
 }
 ```
 
@@ -614,4 +618,4 @@ export abstract class CommonEDAImporter extends EDAImporter {
 
 > **注释是工具，不是目的。最好的文档是清晰的代码本身，最好的注释是恰到好处的补充。在可读性、维护成本和开发效率之间找到平衡。**
 
-*本文档将持续演进，换一通过反馈建议。*
+_本文档将持续演进，换一通过反馈建议。_
